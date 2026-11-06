@@ -2875,3 +2875,106 @@ details a:hover {
 .browser-viewer .private-browser-preview-img { max-height:480px; object-fit:contain; transform:none; animation:none; }
 .browser-viewer-large .private-browser-preview-img { max-height:65vh; }
 .browser-viewer.folded .browser-viewer-toolbar, .browser-viewer.folded .browser-viewer-input, .browser-viewer.folded .browser-viewer-message { display:none !important; }
+
+/* A body-mounted large view escapes chat bubble clipping and scroll containers. */
+.browser-viewer-large { inset:2vh 2vw; width:auto; height:96vh; box-sizing:border-box; display:flex; flex-direction:column; border:1px solid var(--border); border-radius:12px; box-shadow:0 0 0 100vmax #0009; }
+.browser-viewer-large .private-browser-preview-header { flex-shrink:0; flex-wrap:wrap; gap:8px; }
+.browser-viewer-large .private-browser-preview-frame { flex:1; min-height:0; max-height:none; overflow:hidden; }
+.browser-viewer-large .private-browser-preview-img { width:100%; height:100%; max-height:none; object-fit:contain; }
+.browser-viewer .private-browser-preview-frame::after { display:none; }
+.browser-viewer.user-controlled .private-browser-preview-img { cursor:text; }
+.browser-viewer .private-browser-preview-status { white-space:normal; }
+.browser-viewer [data-browser-tabs] { flex:1; min-width:140px; max-width:100%; }
+.browser-viewer button { min-height:36px; cursor:pointer; }
+.browser-viewer button:disabled { cursor:wait; opacity:.6; }
+@media(max-width:600px) {
+  .browser-viewer-large { inset:0; height:100dvh; border-radius:0; }
+  .browser-viewer-large .browser-viewer-input textarea { min-width:100%; }
+}
+/* Remove the old decorative preview's height cap: it hid the new controls. */
+.browser-viewer { max-height:none; }
+.browser-viewer .private-browser-preview-header { height:auto; min-height:40px; padding-block:6px; flex-wrap:wrap; }
+.browser-viewer .private-browser-preview-frame { flex-shrink:0; }
+.browser-viewer-large { margin:0; }
+.browser-viewer-large .private-browser-preview-frame { flex-shrink:1; }
+/* A stable viewing area drives the owned page's responsive viewport. */
+.browser-viewer .private-browser-preview-frame { height:clamp(240px,52vh,520px); max-height:none; }
+.browser-viewer .private-browser-preview-img { width:100%; height:100%; max-height:none; object-fit:contain; }
+.browser-viewer-large .private-browser-preview-frame { height:auto; flex:1; min-height:240px; }
+.browser-viewer-zoom { display:flex; gap:3px; align-items:center; }
+.browser-viewer-zoom [data-browser-action="zoom-reset"] { min-width:58px; }
+/* Tool rows link to one shared modal; no page images are embedded in chat. */
+.browser-launcher { display:flex; flex-direction:row; align-items:center; gap:10px; width:auto; max-height:none; padding:8px; margin:6px 0; }
+.browser-launcher button { padding:7px 12px; font:inherit; color:inherit; background:var(--bg); border:1px solid var(--border); border-radius:6px; cursor:pointer; }
+.browser-launcher-status { font-size:12px; opacity:.75; }
+.browser-viewer[hidden] { display:none !important; }
+
+/* Browser workspace: keep both panes in normal app layout. */
+#browser-workspace { display:flex; flex:1; min-width:0; min-height:0; overflow:hidden; }
+#browser-chat-column { display:flex; flex-direction:column; flex:1; min-width:0; min-height:0; overflow:hidden; position:relative; }
+#browser-pane,.browser-divider { display:none; }
+#browser-workspace.browser-open #browser-chat-column { flex:0 0 calc(var(--browser-chat-share,50%) - 4px); }
+#browser-workspace.browser-open #browser-pane { display:flex; flex:1; min-width:0; min-height:0; overflow:hidden; }
+#browser-workspace.browser-open .browser-divider { display:block; flex:0 0 8px; cursor:col-resize; touch-action:none; background:var(--border); }
+.browser-divider:focus-visible { outline:2px solid var(--accent,#4c93d0); outline-offset:-2px; }
+#browser-pane .browser-viewer { position:relative; inset:auto; width:100%; height:100%; margin:0; max-height:none; box-shadow:none; border-radius:8px; overflow:hidden; }
+#browser-pane .private-browser-preview-frame { flex:1; flex-shrink:1; height:auto; min-height:80px; }
+#browser-pane .browser-viewer-toolbar { flex-shrink:0; gap:5px; padding:6px; }
+#browser-pane .browser-viewer-input { flex-shrink:0; }
+#browser-pane .browser-viewer-message { flex-shrink:0; }
+#browser-workspace.browser-expanded #browser-chat-column,#browser-workspace.browser-expanded .browser-divider { display:none; }
+#browser-workspace.browser-stacked { flex-direction:column; }
+#browser-workspace.browser-stacked.browser-open .browser-divider { cursor:row-resize; }
+.browser-dragging { user-select:none; }
+#browser-workspace.browser-stacked #browser-pane .browser-viewer-input textarea { min-width:100px; }
+#browser-workspace.browser-stacked #browser-pane .browser-viewer-input { max-height:100px; overflow:auto; }
+
+/* Consecutive browser calls share one launcher and a collapsed action log. */
+.browser-activity { border:1px solid var(--border); border-radius:8px; margin:6px 0; overflow:hidden; }
+.browser-activity > .browser-launcher { margin:0; border:0; border-radius:0; }
+.browser-activity > details > summary { cursor:pointer; padding:8px 12px; font-size:12px; opacity:.8; }
+.browser-activity.has-failure > details > summary { color:var(--accent-error,var(--red)); opacity:1; }
+.browser-activity-actions { padding:0 10px 8px; }
+
+/* Browser controls follow the app's compact, muted panel language. */
+.browser-launcher { flex-wrap:wrap; }
+.browser-launcher button { flex:0 0 auto; white-space:nowrap; height:auto; min-height:32px; line-height:1.35; }
+.browser-launcher-status { flex:1 1 150px; min-width:0; line-height:1.4; }
+#browser-pane .private-browser-preview-header { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:6px 8px; padding:8px 10px; }
+#browser-pane .private-browser-preview-title { grid-column:1; grid-row:1; }
+#browser-pane .private-browser-preview-status { grid-row:2; grid-column:1/-1; line-height:1.4; font-size:12px; opacity:.75; }
+#browser-pane [data-browser-action=expand] { grid-row:1; grid-column:2; }
+#browser-pane [data-browser-action=enlarge] { grid-row:1; grid-column:3; }
+#browser-pane .browser-viewer button { font-size:12px; min-height:32px; line-height:1.3; }
+#browser-pane .browser-viewer-input { display:block; padding:0; max-height:40%; overflow:auto; border-top:1px solid var(--border); }
+.browser-viewer-input > summary { padding:8px 10px; font-size:12px; cursor:pointer; }
+.browser-text-controls { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px; }
+.browser-mobile-tabs { display:none; }
+#browser-workspace.browser-open.browser-compact:not(.browser-expanded) .browser-mobile-tabs { display:flex; flex:none; gap:4px; padding:5px 0; }
+.browser-mobile-tabs button { flex:1; min-height:36px; font:inherit; font-size:12px; border:1px solid var(--border); border-radius:6px; background:var(--panel); color:var(--fg); cursor:pointer; }
+.browser-mobile-tabs button[aria-pressed=true] { background:color-mix(in srgb,var(--red) 12%,var(--panel)); border-color:var(--red); }
+#browser-workspace.browser-open.browser-compact:not(.browser-expanded) .browser-divider { display:none; }
+#browser-workspace.browser-open.browser-compact:not(.browser-expanded) #browser-chat-column { flex:1; }
+#browser-workspace.browser-open.browser-compact:not(.browser-expanded)[data-mobile-pane=chat] #browser-pane,
+#browser-workspace.browser-open.browser-compact:not(.browser-expanded)[data-mobile-pane=browser] #browser-chat-column { display:none; }
+#browser-pane .browser-viewer:focus { outline-offset:-2px; }
+@media(max-width:480px) {
+  #browser-pane .private-browser-preview-title { font-size:12px; }
+  #browser-pane .private-browser-preview-header { gap:5px; padding:6px; }
+  #browser-pane .browser-viewer button { padding:5px 7px; }
+}
+.browser-activity > details > summary { background:transparent; border:0; border-top:1px solid var(--border); border-radius:0; color:var(--fg); line-height:1.5; }
+.browser-activity.has-failure > details > summary { color:var(--accent-error,var(--red)); }
+#browser-pane .browser-viewer-input > summary { background:transparent; border:0; border-radius:0; color:var(--fg); opacity:.8; line-height:1.5; }
+.browser-viewer.user-controlled .private-browser-preview-img { cursor:default; }
+@media(max-width:480px) {
+  #browser-pane .browser-text-controls textarea { flex-basis:100%; min-width:0; width:100%; }
+}
+@media(max-height:500px) {
+  #browser-pane .private-browser-preview-header { padding-block:4px; }
+  #browser-pane .private-browser-preview-status { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); }
+  #browser-pane .browser-viewer-toolbar { flex-wrap:nowrap; overflow-x:auto; }
+  #browser-pane .browser-viewer-toolbar > * { flex-shrink:0; }
+  #browser-pane [data-browser-tabs] { flex:0 0 140px; }
+  #browser-pane .browser-viewer-message { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+}

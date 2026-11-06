@@ -150,3 +150,30 @@ async def test_navigation_invalidates_displayed_frame_and_narrow_request_cannot_
     renewed=await op(auth,'refresh',client='viewer-a',lease=state['lease'],page='t1')
     assert renewed['status']=='ready' and renewed['frame_id']!=state['frame_id']
     await op(auth,'release',client='viewer-a',lease=state['lease'],page='t1')
+
+@pytest.mark.slow
+async def test_refresh_keeps_unchanged_frame_but_input_changes_revision(live_browser):
+    auth=authority()
+    await call(auth,'open',url='https://catalog.example/')
+    state=await op(auth,'take',client='viewer-a',page='t1')
+    refreshed=await op(auth,'refresh',client='viewer-a',lease=state['lease'],page='t1')
+    assert refreshed['frame_id']==state['frame_id']
+    changed=await op(auth,'input',**input_args(state,kind='key',key='Tab'))
+    assert changed['frame_id']!=state['frame_id']
+    assert changed['revision']>state['revision']
+
+
+@pytest.mark.slow
+async def test_responsive_viewport_requires_lease_and_invalidates_previous_frame(live_browser):
+    auth=authority()
+    await call(auth,'open',url='https://catalog.example/')
+    state=await op(auth,'take',client='viewer-a',page='t1',viewport={'width':700,'height':800})
+    assert (state['width'],state['height'])==(700,800)
+    changed=await op(auth,'refresh',client='viewer-a',lease=state['lease'],page='t1',viewport={'width':560,'height':640})
+    assert (changed['width'],changed['height'])==(560,640)
+    with pytest.raises(ResourceIdentityError,match='view changed'):
+        await op(auth,'input',**input_args(state,kind='click',x=20,y=20))
+    with pytest.raises(ValueError,match='viewport'):
+        await op(auth,'refresh',client='viewer-a',lease=state['lease'],page='t1',viewport={'width':99999,'height':640})
+    with pytest.raises(ResourceIdentityError,match='control expired'):
+        await op(auth,'refresh',client='viewer-b',page='t1',viewport={'width':500,'height':600})

@@ -133,6 +133,9 @@ app = FastAPI(
     version="1.0.0",
 )
 
+from src.browser_client_identity import BrowserClientIdentityMiddleware
+app.add_middleware(BrowserClientIdentityMiddleware)
+
 # ========= CORS =========
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
