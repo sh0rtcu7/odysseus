@@ -224,8 +224,10 @@ async def _launch_locked(authority):
         if binary:
             options["executable_path"] = binary
         browser = await playwright.chromium.launch(**options)
+        from src.browser_client_identity import client_user_agent
+        client_options = {'user_agent': client_user_agent()} if client_user_agent() else {}
         context = await browser.new_context(accept_downloads=False, service_workers="block",
-            viewport={"width": 1280, "height": 900})
+            viewport={"width": 1280, "height": 900}, **client_options)
         await context.route("**/*", _route)
         await context.route_web_socket("**/*", _websocket_route)
         resource = BrowserSessionResource(authority.owner, authority.session_id,

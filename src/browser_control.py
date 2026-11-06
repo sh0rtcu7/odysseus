@@ -55,6 +55,18 @@ def _page(record, alias):
     return pair[0], browser.validate_page(pair[0])
 
 
+async def resize_viewport(record, page, viewport):
+    if viewport is None: return
+    if (not isinstance(viewport, dict) or set(viewport) != {'width','height'}
+            or type(viewport['width']) is not int or type(viewport['height']) is not int
+            or not 320 <= viewport['width'] <= 1920 or not 240 <= viewport['height'] <= 1600):
+        raise ValueError('Browser viewport must be 320–1920 pixels wide and 240–1600 pixels high')
+    if page.viewport_size != viewport:
+        record.control.revision += 1
+        for resource,_ in record.pages.values(): record.invalidate_refs(resource)
+        await page.set_viewport_size(viewport)
+
+
 async def capture(record, resource, page):
     """UI-only frame. Never place its bytes in model history or tool replay."""
     from PIL import Image
@@ -62,6 +74,15 @@ async def capture(record, resource, page):
     document_revision = record.control.documents.get(resource.resolved_alias, 0)
     raw = await page.screenshot(type='jpeg', quality=65, timeout=5000)
     with Image.open(io.BytesIO(raw)) as img: width, height = img.size
+    previous = record.control.frame
+    if (previous and previous['resource'] == resource
+            and previous['revision'] == record.control.revision
+            and previous['document_revision'] == document_revision
+            and previous['data'] == raw):
+        # Keep an unchanged image's identity stable so idle refreshes do not
+        # invalidate the page the user is currently seeing or reload its image.
+        previous['captured_at'] = time.monotonic()
+        return frame_metadata(record)
     record.control.frame = dict(id=secrets.token_urlsafe(24), resource=resource,
         revision=record.control.revision, document_revision=document_revision,
         captured_at=time.monotonic(), width=width, height=height, data=raw)
@@ -127,6 +148,7 @@ async def _call(owner, session_id, action, args):
                     c.revision += 1
                     c.expires = time.monotonic() + LEASE_SECONDS
                     for r, _ in record.pages.values(): record.invalidate_refs(r)
+                    await resize_viewport(record,page,args.get('viewport'))
                     await capture(record, resource, page)
                     record.touched = time.monotonic()
                     return dict(**_state(record, client, c.lease), lease=c.lease)
@@ -146,6 +168,7 @@ async def _call(owner, session_id, action, args):
             return _state(record)
         if action == 'refresh':
             resource, page = _page(record, args.get('page') or next(iter(record.pages), ''))
+            await resize_viewport(record,page,args.get('viewport'))
             await capture(record, resource, page)
         elif action == 'input':
             frame = c.frame

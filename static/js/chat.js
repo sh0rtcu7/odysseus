@@ -1,3 +1,4 @@
+import {setBrowserAction} from './browserActivity.js';
 import { browserPreviewHtml, observeBrowserPreview } from './browserViewer.js';
 // static/js/chat.js
 
@@ -5064,6 +5065,7 @@ import { invalidateSettings } from './appConfig.js';
 	                const toolHeaderAction = toolInfo.headerActionHtml || '';
 	                const node = document.createElement('div')
 	                node.className = 'agent-thread-node running' + (_isPrivateBrowserTool(json.tool) ? ' open browser-preview-node' : '');
+                if(_isPrivateBrowserTool(json.tool))setBrowserAction(node,cmd);
 		                const cmdHtml = _isPrivateBrowserTool(json.tool) ? '' : (toolInfo.commandHtml || (cmd ? `<pre class="agent-thread-cmd">${esc(cmd)}</pre>` : ''));
                 node.innerHTML = `<div class="agent-thread-dot"></div><div class="agent-thread-header">${toolIcon}<span class="agent-thread-tool">${esc(toolLabel)}</span>${toolHeaderAction}<span class="agent-thread-wave">▁▂▃</span></div><div class="agent-thread-content">${cmdHtml}</div>`;
                 // Expand/collapse via delegated click handler (init at module bottom).
@@ -5220,6 +5222,7 @@ import { invalidateSettings } from './appConfig.js';
                   // click again. Click handling is delegated (see init at
                   // bottom of file) so no per-node listener needed.
 	                  if (browserTool) {
+                    setBrowserAction(currentToolBubble,cmd);
                     outHtml = _privateBrowserPreviewHtml(cmd, json.screenshot) + outHtml;
                   }
 	                  const _wasOpen = currentToolBubble.classList.contains('open') || browserTool;

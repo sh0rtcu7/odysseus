@@ -1,3 +1,4 @@
+import {setBrowserAction} from './browserActivity.js';
 import { browserPreviewHtml } from './browserViewer.js';
 // static/js/chatRenderer.js
 // Extracted from chat.js — message rendering, sources, images, metrics
@@ -3423,6 +3424,7 @@ export function addMessage(role, content, modelName, metadata) {
             }
             const node = document.createElement('div');
             const browserTool = _isPrivateBrowserTool(ev.tool);
+            if(browserTool)setBrowserAction(node,ev.command);
             node.className = 'agent-thread-node' + (ok ? '' : ' error') + (browserTool ? ' open browser-preview-node' : '');
             // Hide raw JSON for high-level app tools and diffs; show the same
             // compact command summary that live streaming uses.

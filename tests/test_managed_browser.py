@@ -392,3 +392,24 @@ async def test_post_click_snapshot_waits_for_replacement_body(live_browser, monk
     ref = next(e['ref'] for e in opened['elements'] if e['name'] == 'Search')
     clicked = output(await call(auth, 'click', page='t1', ref=ref))
     assert 'Search results loaded' in clicked['snapshot']
+
+@pytest.mark.slow
+async def test_client_user_agent_matches_http_and_navigator_and_is_not_replaced(live_browser,monkeypatch):
+    from src.browser_client_identity import BrowserClientIdentityMiddleware
+    received=[]
+    async def route(request):
+        received.append(request.request.headers.get('user-agent'))
+        await request.fulfill(status=200,content_type='text/html',body='<main>Ready</main>')
+    monkeypatch.setattr(browser,'_route',route)
+    auth=authority()
+    async def first(*args):
+        output(await call(auth,'open',url='https://catalog.example/'))
+    await BrowserClientIdentityMiddleware(first)({'type':'http','headers':[(b'user-agent',b'Client Browser/123')]},None,None)
+    async def observe():return await browser.current(auth.owner,auth.session_id).pages['t1'][1].evaluate('navigator.userAgent')
+    assert await browser._submit(observe())=='Client Browser/123'
+    assert received==['Client Browser/123']
+    async def second(*args):
+        output(await call(auth,'navigate',page='t1',url='https://catalog.example/next'))
+    await BrowserClientIdentityMiddleware(second)({'type':'http','headers':[(b'user-agent',b'Different Browser/456')]},None,None)
+    assert await browser._submit(observe())=='Client Browser/123'
+    assert received[-1]=='Client Browser/123'
